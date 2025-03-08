@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Results Portal</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 2px solid #3f51b5;
+        }
+        
+        .header {
+            background-color: #3f51b5;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .search-section {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        
+        input[type="text"] {
+            padding: 10px;
+            width: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #3f51b5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-left: 10px;
+        }
+        
+        button:hover {
+            background-color: #303f9f;
+        }
+        
+        button:disabled {
+            background-color: #9fa8da;
+            cursor: not-allowed;
+        }
+        
+        .result-card {
+            display: none;
+            padding: 15px;
+        }
+        
+        .school-info {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .school-logo {
+            width: 100px;
+            height: 80px;
+            margin: 0 auto;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: transparent;
+        }
+        
+        .school-info h2 {
+            margin: 10px 0 5px;
+            font-size: 18px;
+        }
+        
+        .student-info {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            border: 1px solid #eee;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .student-info-item {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .student-info p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .exam-info {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .exam-info p {
+            margin: 5px 0;
+        }
+        
+        /* Table containers with horizontal scroll on mobile */
+        #simpleTableContainer, #detailedTableContainer {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch; /* Better scrolling on iOS */
+            position: relative;
+            border-radius: 4px;
+            background-color: #fff;
+            border: 1px solid #eee;
+            margin-bottom: 15px;
+        }
+        
+        /* Enhanced table border styles */
+        .subjects-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 0;
+            font-size: 14px;
+            min-width: 500px;
+            background-color: #fff;
+            border: 2px solid #000;
+            box-sizing: border-box;
+        }
+        
+        .subjects-table th, 
+        .subjects-table td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: center;
+            width: auto;
+            position: relative;
+            box-sizing: border-box;
+        }
+        
+        /* Specific styles for component headers with rowspan/colspan */
+        .subjects-table th[rowspan],
+        .subjects-table th[colspan] {
+            border: 1px solid #000;
+            box-shadow: inset 0 0 0 1px #000;
+        }
+        
+        /* Add top and bottom border to table head */
+        .subjects-table thead {
+            border-bottom: 2px solid #000;
+        }
+        
+        /* Add border to component header */
+        .subjects-table th.component-header {
+            border: 1px solid #000;
+            box-shadow: inset 0 0 0 1px #000;
+        }
+        
+        /* Make all component columns equal width */
+        .subjects-table th.component-header {
+            width: 80px; /* Fixed width for components */
+            min-width: 80px;
+            max-width: 100px;
+        }
+        
+        .subjects-table th:first-child { /* Subject column */
+            width: 120px;
+        }
+        
+        .subjects-table th.total-header, 
+        .subjects-table th.grade-header {
+            width: 60px;
+        }
+        
+        .subjects-table th {
+            background-color: #f5f5f5;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .subjects-table th:first-child, .subjects-table td:first-child {
+            text-align: center;
+        }
+        
+        .grade-A, .grade-A\+ { color: #4CAF50; font-weight: bold; }
+        .grade-B, .grade-B\+ { color: #2196F3; font-weight: bold; }
+        .grade-C, .grade-C\+ { color: #FF9800; font-weight: bold; }
+        .grade-D, .grade-D\+ { color: #FF9800; font-weight: bold; }
+        .grade-E { color: #FF7043; font-weight: bold; }
+        .grade-F { color: #F44336; font-weight: bold; }
+        
+        .summary {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .total-section, .result-section {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            margin: 5px;
+        }
+        
+        .result-section {
+            text-align: center;
+        }
+        
+        .pass {
+            color: #4CAF50;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .fail {
+            color: #F44336;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .signature-section {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .signature {
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+            padding: 0 10px;
+        }
+        
+        .signature-image {
+            max-width: 120px;
+            height: 50px;
+            margin: 5px auto;
+            display: block;
+        }
+        
+        .error-message {
+            color: #F44336;
+            text-align: center;
+            padding: 15px;
+            display: none;
+        }
+        
+        .print-button {
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .disclaimer {
+            text-align: center;
+            margin: 20px auto 10px;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+            max-width: 90%;
+            font-family: 'Times New Roman', Times, serif;
+            position: relative;
+            clear: both;
+            display: block;
+            page-break-inside: avoid;
+        }
+        
+        .disclaimer p {
+            text-align: center;
+            margin: 0 auto;
+        }
+        
+        .component-weight {
+            font-size: 11px;
+            color: #666;
+            display: inline-block !important; 
+            margin-top: 4px;
+            font-weight: normal;
+            background-color: #f7f7f7;
+            padding: 1px 3px;
+            border-radius: 3px;
+        }
+        
+        /* Mobile scroll indicator */
+        .scroll-indicator {
+            display: none;
+            text-align: center;
+            margin: 0;
+            padding: 3px 0;
+            color: #3f51b5;
+            font-size: 12px;
+            background-color: rgba(255,255,255,0.9);
+            position: sticky;
+            left: 0;
+            width: 100%;
+            z-index: 1;
+        }
+        
+        /* Skeleton loading animation */
+        @keyframes shimmer {
+            0% {
+                background-position: -468px 0;
+            }
+            100% {
+                background-position: 468px 0;
+            }
+        }
+        
+        .skeleton {
+            background: #f6f7f8;
+            background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+            background-repeat: no-repeat;
+            background-size: 800px 104px;
+            display: block;
+            border-radius: 4px;
+            position: relative;
+            animation-duration: 1.5s;
+            animation-fill-mode: forwards;
+            animation-iteration-count: infinite;
+            animation-name: shimmer;
+            animation-timing-function: linear;
+        }
+        
+        .skeleton-loader {
+            display: none;
+            padding: 15px;
+        }
+        
+        .skeleton-line {
+            height: 16px;
+            margin-bottom: 8px;
+            border-radius: 2px;
+        }
+        
+        .skeleton-line.title {
+            height: 24px;
+            width: 40%;
+            margin: 0 auto 15px auto;
+        }
+        
+        .skeleton-line.full {
+            width: 100%;
+        }
+        
+        .skeleton-line.medium {
+            width: 70%;
+        }
+        
+        .skeleton-line.short {
+            width: 50%;
+        }
+        
+        .skeleton-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .skeleton-table th, .skeleton-table td {
+            border: 1px solid #eee;
+            height: 30px;
+        }
+        
+        .loading-message {
+            display: none;
+            text-align: center;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 4px;
+            background-color: #e3f2fd;
+            border: 1px solid #bbdefb;
+            color: #0d47a1;
+            font-size: 14px;
+        }
+        
+        .loading-message.error {
+            background-color: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #b71c1c;
+        }
+        
+        .loading-message.success {
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #1b5e20;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(63, 81, 181, 0.3);
+            border-radius: 50%;
+            border-top-color: #3f51b5;
+            animation: spin 1s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 0;
+                border-radius: 0;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .student-info-item {
+                min-width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .student-info p strong {
+                width: 150px;
+            }
+            
+            .signature {
+                min-width: 100%;
+                margin-bottom: 15px;
+            }
+            
+            input[type="text"] {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            button {
+                width: 100%;
+                margin-left: 0;
+            }
+            
+            /* Show horizontal scroll indicators on mobile */
+            .scroll-indicator {
+                display: block;
+            }
+            
+            /* Table styles for mobile */
+            .subjects-table {
+                font-size: 12px;
+            }
+            
+            .subjects-table th, .subjects-table td {
+                padding: 4px;
+                white-space: nowrap;
+            }
+            
+            .component-weight {
+                font-size: 8px;
+            }
+        }
+        
+        /* Enhanced print styles for tables */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            
+            .result-card, .result-card * {
+                visibility: visible;
+            }
+            
+            .result-card {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                border: 2px solid #3f51b5 !important;
+                padding: 15px !important;
+                box-sizing: border-box !important;
+                background-color: white !important;
+            }
+            
+            .student-info {
+                border: 1px solid #000 !important;
+            }
+            
+            /* Strong borders for tables - enhanced */
+            .subjects-table {
+                border: 2px solid #000 !important;
+                border-collapse: collapse !important;
+                empty-cells: show !important;
+                box-shadow: none !important;
+                outline: 2px solid #000 !important;
+                outline-offset: 0 !important;
+            }
+            
+            /* Force ALL borders on all table elements */
+            .subjects-table * {
+                border-color: #000 !important;
+            }
+            
+            .subjects-table th, 
+            .subjects-table td {
+                border: 1px solid #000 !important;
+                padding: 3px !important;
+                background-clip: padding-box !important;
+                box-shadow: inset 0 0 0 1px #000 !important;
+                -webkit-box-shadow: inset 0 0 0 1px #000 !important;
+            }
+            
+            .subjects-table tr {
+                border: 1px solid #000 !important;
+                page-break-inside: avoid !important;
+            }
+            
+            /* Special handling for rowspan/colspan cells in print */
+            .subjects-table th[rowspan],
+            .subjects-table th[colspan] {
+                border: 1px solid #000 !important;
+                box-shadow: inset 0 0 0 1px #000 !important;
+                -webkit-box-shadow: inset 0 0 0 1px #000 !important;
+                outline: 1px solid #000 !important;
+                outline-offset: -1px !important;
+            }
+            
+            /* Force borders on thead */
+            .subjects-table thead {
+                border: 2px solid #000 !important;
+                border-bottom: 2px solid #000 !important;
+            }
+            
+            .subjects-table thead tr {
+                border: 1px solid #000 !important;
+            }
+            
+            /* Force borders on component headers */
+            .subjects-table th.component-header,
+            .subjects-table th.total-header,
+            .subjects-table th.grade-header {
+                border: 1px solid #000 !important;
+                box-shadow: inset 0 0 0 1px #000 !important;
+                -webkit-box-shadow: inset 0 0 0 1px #000 !important;
+            }
+            
+            /* Add this to force borders to be visible */
+            .subjects-table th.component-header div {
+                position: relative !important;
+                border-bottom: none !important;
+            }
+            
+            /* Force print to render backgrounds */
+            .subjects-table th {
+                background-color: #f5f5f5 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            
+            .total-section, .result-section {
+                border: 1px solid #000 !important;
+            }
+            
+            .print-button {
+                display: none !important;
+            }
+            
+            .grade-A, .grade-A\+ { color: #4CAF50 !important; }
+            .grade-B, .grade-B\+ { color: #2196F3 !important; }
+            .grade-C, .grade-C\+ { color: #FF9800 !important; }
+            .grade-D, .grade-D\+ { color: #FF9800 !important; }
+            .grade-E { color: #FF7043 !important; }
+            .grade-F { color: #F44336 !important; }
+            
+            .disclaimer {
+                position: relative !important;
+                visibility: visible !important;
+                display: block !important;
+                margin: 15px auto 5px !important;
+                text-align: center !important;
+                font-family: 'Times New Roman', Times, serif !important;
+                width: 90% !important;
+                page-break-before: avoid !important;
+                page-break-inside: avoid !important;
+            }
+            
+            .disclaimer p {
+                text-align: center !important;
+                margin: 0 auto !important;
+                width: 100% !important;
+                font-size: 10px !important;
+            }
+            
+            .pass { color: #4CAF50 !important; }
+            .fail { color: #F44336 !important; }
+            
+            /* Hide scroll indicators when printing */
+            .scroll-indicator {
+                display: none !important;
+            }
+            
+            /* Scrolling containers should display their full content */
+            #simpleTableContainer, #detailedTableContainer {
+                overflow: visible !important;
+                border: none !important;
+                position: static !important;
+                transform: none !important;
+                width: 100% !important;
+                margin: 0 !important;
+            }
+            
+            @page {
+                size: portrait;
+                margin: 5mm;
+            }
+        }
+        
+        /* Landscape print styles - will be applied when body has 'print-landscape' class */
+        body.print-landscape {
+            width: auto;
+            height: auto;
+        }
+        
+        @media print and (min-width: 800px) {
+            body.print-landscape .subjects-table {
+                font-size: 10px !important;
+            }
+            
+            body.print-landscape .subjects-table th, 
+            body.print-landscape .subjects-table td {
+                padding: 4px !important;
+            }
+            
+            @page {
+                size: landscape;
+                margin: 10mm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Exam Results Portal</h1>
+        </div>
+        
+        <div class="search-section">
+            <input type="text" id="rollNumber" placeholder="Enter 5 Digits Admission No.">
+            <button id="searchButton" onclick="fetchResult()">Get Result</button>
+        </div>
+        
+        <!-- Loading Message Section -->
+        <div id="loadingMessage" class="loading-message">
+            <div class="spinner"></div>
+            <span id="loadingText">Please wait while we connect to the server. This might take a few seconds as the free tier service wakes up...</span>
+        </div>
+
+        <div class="error-message" id="errorMessage">
+            Student record not found. Please check the Enrollment number and try again.
+        </div>
+        
+        <!-- Skeleton Loader -->
+        <div id="skeletonLoader" class="skeleton-loader">
+            <div class="school-info">
+                <div class="skeleton skeleton-line title"></div>
+                <div class="skeleton skeleton-line short" style="margin: 0 auto;"></div>
+            </div>
+            
+            <div class="student-info">
+                <div class="student-info-item">
+                    <div class="skeleton skeleton-line full"></div>
+                    <div class="skeleton skeleton-line full"></div>
+                    <div class="skeleton skeleton-line full"></div>
+                </div>
+                <div class="student-info-item text-right">
+                    <div class="skeleton skeleton-line full"></div>
+                    <div class="skeleton skeleton-line full"></div>
+                    <div class="skeleton skeleton-line full"></div>
+                </div>
+            </div>
+            
+            <table class="skeleton-table">
+                <thead>
+                    <tr>
+                        <th><div class="skeleton"></div></th>
+                        <th><div class="skeleton"></div></th>
+                        <th><div class="skeleton"></div></th>
+                        <th><div class="skeleton"></div></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><div class="skeleton"></div></td>
+                        <td><div class="skeleton"></div></td>
+                        <td><div class="skeleton"></div></td>
+                        <td><div class="skeleton"></div></td>
+                    </tr>
+                    <tr>
+                        <td><div class="skeleton"></div></td>
+                        <td><div class="skeleton"></div></td>
+                        <td><div class="skeleton"></div></td>
+                        <td><div class="skeleton"></div></td>
+                    </tr>
+                    <tr>
+                        <td><div class="skeleton"></div></td>
+                        <td><div class="skeleton"></div></td>
+                        <td><div class="skeleton"></div></td>
+                        <td><div class="skeleton"></div></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="summary">
+                <div style="flex: 1;">
+                    <div class="skeleton skeleton-line medium"></div>
+                    <div class="skeleton skeleton-line short"></div>
+                </div>
+                <div style="flex: 1; text-align: center;">
+                    <div class="skeleton skeleton-line medium" style="margin: 0 auto;"></div>
+                    <div class="skeleton skeleton-line short" style="margin: 0 auto;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="result-card" id="resultCard">
+            <div class="school-info">
+                <div class="school-logo">
+                    <img src="https://i.imgur.com/GxoHln6.jpeg" alt="KVS" style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+                <h2 id="schoolName">School Name</h2>
+                <p>Examination Results <span id="examYear"></span></p>
+            </div>
+            
+            <div class="student-info">
+                <div class="student-info-item">
+                    <p><strong>Name:</strong> <span id="studentName">John Doe</span></p>
+                    <p><strong>Enrollment No:</strong> <span id="studentRoll">12345</span></p>
+                    <p><strong>Date of Birth:</strong> <span id="studentDOB">01/01/2010</span></p>
+                </div>
+                <div class="student-info-item text-right">
+                    <p><strong>Class:</strong> <span id="studentClass">X-A</span></p>
+                    <p><strong>Father's Name:</strong> <span id="fatherName">Mr. John Doe Sr.</span></p>
+                    <p><strong>Mother's Name:</strong> <span id="motherName">Mrs. Jane Doe</span></p>
+                </div>
+            </div>
+            
+            <div class="exam-info">
+                <p><strong>Exam:</strong> <span id="examName">Final Term</span></p>
+            </div>
+            
+            <!-- Simple table view -->
+            <div id="simpleTableContainer">
+                <div class="scroll-indicator">
+                    <span>← Swipe to view complete table →</span>
+                </div>
+                <table class="subjects-table" id="simpleTable">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Max Marks</th>
+                            <th>Marks Obtained</th>
+                            <th>Grade</th>
+                        </tr>
+                    </thead>
+                    <tbody id="simpleTableBody">
+                        <!-- Subject marks will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Detailed table view -->
+            <div id="detailedTableContainer" style="display: none;">
+                <div class="scroll-indicator">
+                    <span>← Swipe to view complete table →</span>
+                </div>
+                <table class="subjects-table" id="detailedTable">
+                    <!-- Table headers will be created dynamically -->
+                    <thead id="detailedTableHead">
+                    </thead>
+                    <tbody id="detailedTableBody">
+                        <!-- Detailed subject marks will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="summary">
+                <div class="total-section">
+                    <p><strong>Total Marks:</strong> <span id="totalObtained">0</span>/<span id="totalMax">0</span></p>
+                    <p><strong>Percentage:</strong> <span id="percentage">0</span>%</p>
+                    <p><strong>Remark:</strong> <span id="cgpa">0.0</span></p>
+                </div>
+                <div class="result-section">
+                    <p><strong>Result</strong></p>
+                    <p id="resultStatus" class="pass">PASS</p>
+                </div>
+            </div>
+            
+            <div class="signature-section">
+                <div class="signature" style="visibility: hidden">
+                    <!-- Empty space where Class Teacher was -->
+                </div>
+                <div class="signature">
+                    <img id="examInchargeSignature" src="" alt="Exam Incharge Signature" class="signature-image" style="display: none;">
+                    <p>Exam I/C</p>
+                </div>
+            </div>
+            
+            <div class="disclaimer">
+                <p style="text-align: center;"><strong>Disclaimer:</strong> kvsecontent is not responsible for any errors in the online results. These are for immediate reference only and not official mark sheets. Original mark sheets are issued separately by the Vidyalaya.</p>
+            </div>
+            
+            <div class="print-button">
+                <button onclick="printResult()" style="background-color: #4CAF50;">Print Result</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Replace with your backend API URL
+        const API_BASE_URL = 'https://term-exam-result-api.onrender.com';
+        
+        // Create an invisible debug div to help diagnose issues
+        const debugDiv = document.createElement('div');
+        debugDiv.id = 'debug-info';
+        debugDiv.style.display = 'none';
+        debugDiv.innerHTML = `
+            <h3>Debug Information</h3>
+            <pre id="debug-content"></pre>
+        `;
+        document.body.appendChild(debugDiv);
+        
+        // Helper function to add debug info
+        window.addDebug = (text) => {
+            const debugContent = document.getElementById('debug-content');
+            if (debugContent) {
+                debugContent.textContent += text + '\n';
+            }
+        };
+        
+        // Track API response time to determine if server is "cold"
+        let apiResponseStart = 0;
+        let isFirstFetch = true;
+        let isServerCold = false;
+        
+        // Flag to check if we need detailed view or not
+        let useDetailedView = false;
+        
+        // Global flag to track if Sanskrit subject exists
+        window.hasSanskritSubject = false;
+        
+        async function fetchDataFromBackend(rollNumber) {
+            try {
+                // Start timing the API response
+                apiResponseStart = Date.now();
+                
+                // Show loading message
+                showLoadingMessage("Please wait while we fetch the results...");
+                
+                // Show skeleton loader after a short delay
+                setTimeout(() => {
+                    if (Date.now() - apiResponseStart > 300) { // If API hasn't responded in 300ms
+                        document.getElementById('skeletonLoader').style.display = 'block';
+                    }
+                }, 300);
+                
+                // After 3 seconds, if still loading, update message to inform about cold start
+                setTimeout(() => {
+                    if (Date.now() - apiResponseStart > 3000 && isFirstFetch) {
+                        isServerCold = true;
+                        showLoadingMessage("The server is warming up (first request may take 20-30 seconds). Please wait...");
+                    }
+                }, 3000);
+                
+                const url = `${API_BASE_URL}/api/student/${rollNumber}`;
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                // Track that we've completed one fetch
+                isFirstFetch = false;
+                
+                // Hide the skeleton loader
+                document.getElementById('skeletonLoader').style.display = 'none';
+                
+                if (result.success) {
+                    // Update loading message to success
+                    if (isServerCold) {
+                        showSuccessMessage("Server is now active! Loading results...");
+                        await new Promise(resolve => setTimeout(resolve, 1000)); // Show success message briefly
+                    }
+                    
+                    // Process the data
+                    const data = result.data;
+                    
+                    // Extract all active components for this student with their max marks
+                    const activeComponents = new Set();
+                    const componentMaxMarks = {};
+                    
+                    // Group subjects by their base name (before the underscore)
+                    const groupedSubjects = {};
+                    const mainSubjects = [];
+                    
+                    // Extract Max_Marks values first (before processing subjects)
+                    if (data.subjects && Array.isArray(data.subjects)) {
+                        // First scan specifically for Max_Marks fields
+                        data.subjects.forEach(subject => {
+                            if (subject.name && subject.name.includes('_Max_Marks')) {
+                                const parts = subject.name.split('_Max_Marks')[0].split('_');
+                                const baseSubjectName = parts[0]; // First part is subject name
+                                
+                                if (parts.length > 1) {
+                                    // Extract component name (everything between subject name and _Max_Marks)
+                                    const componentName = subject.name.substring(baseSubjectName.length + 1, subject.name.length - 10); // 10 is the length of "_Max_Marks"
+                                    const maxMarks = subject.obtained || 0;
+                                    
+                                    // Store max marks for this component
+                                    if (maxMarks > 0) {
+                                        componentMaxMarks[componentName] = maxMarks;
+                                        console.log(`Found max marks for ${componentName}: ${maxMarks}`);
+                                    }
+                                }
+                            }
+                        });
+                        
+                        // Now process all subjects to build the groupedSubjects object
+                        data.subjects.forEach(subject => {
+                            // Extract the base subject name and component
+                            if (!subject.name) return;
+                            
+                            // Handle Cycle Test components
+                            if (subject.name.includes('Cycle_Test_') && subject.name.includes('_Obtained')) {
+                                const parts = subject.name.split('_Obtained')[0].split('_');
+                                const baseSubjectName = parts[0]; // The subject name
+                                
+                                // Create component name based on cycle test number
+                                let componentName = parts.slice(1).join('_'); // e.g., "Cycle_Test_1"
+                                
+                                // Create the subject group if it doesn't exist
+                                if (!groupedSubjects[baseSubjectName]) {
+                                    groupedSubjects[baseSubjectName] = {
+                                        name: baseSubjectName,
+                                        maxMarks: 100,
+                                        components: {},
+                                        obtained: 0,
+                                        grade: '-',
+                                        hasData: false
+                                    };
+                                }
+                                
+                                // Get the marks from the subject data
+                                const marks = subject.obtained || 0;
+                                
+                                // Display name for Cycle Tests
+                                const cycleNumber = componentName.split('_')[2]; // Extract number from Cycle_Test_N
+                                const displayName = `Cycle Test ${cycleNumber}`;
+                                
+                                // Add the component to the subject
+                                if (!groupedSubjects[baseSubjectName].components[componentName]) {
+                                    groupedSubjects[baseSubjectName].components[componentName] = {
+                                        marks: marks,
+                                        displayName: displayName
+                                    };
+                                } else {
+                                    // Update marks if this is being re-processed
+                                    groupedSubjects[baseSubjectName].components[componentName].marks = marks;
+                                }
+                                
+                                // If the component has marks > 0, add it to active components
+                                if (marks > 0) {
+                                    activeComponents.add(componentName);
+                                    groupedSubjects[baseSubjectName].hasData = true;
+                                }
+                                
+                                return; // Skip standard processing
+                            }
+                            
+                            // Handle special case for Periodic Test-I and Periodic Test-II
+                            if (subject.name.includes('Periodic_Test-I') || subject.name.includes('Periodic_Test-II')) {
+                                const testParts = subject.name.split('_');
+                                const baseSubjectName = testParts[0]; // The subject name
+                                
+                                // Create the base component name
+                                let componentName = '';
+                                if (subject.name.includes('Periodic_Test-I')) {
+                                    componentName = 'Periodic_Test-I';
+                                    if (subject.name.includes('_Obtained')) {
+                                        componentName = 'Periodic_Test-I';
+                                    }
+                                } else {
+                                    componentName = 'Periodic_Test-II';
+                                    if (subject.name.includes('_Obtained')) {
+                                        componentName = 'Periodic_Test-II';
+                                    }
+                                }
+                                
+                                // Skip if this is a Max_Marks field
+                                if (subject.name.includes('Max_Marks')) return;
+                                
+                                // Create the subject group if it doesn't exist
+                                if (!groupedSubjects[baseSubjectName]) {
+                                    groupedSubjects[baseSubjectName] = {
+                                        name: baseSubjectName,
+                                        maxMarks: 100,
+                                        components: {},
+                                        obtained: 0,
+                                        grade: '-',
+                                        hasData: false
+                                    };
+                                }
+                                
+                                // Get the marks from the subject data
+                                const marks = subject.obtained || 0;
+                                
+                                // Add the component to the subject
+                                if (!groupedSubjects[baseSubjectName].components[componentName]) {
+                                    groupedSubjects[baseSubjectName].components[componentName] = {
+                                        marks: marks,
+                                        displayName: componentName.replace(/_/g, ' ')
+                                    };
+                                } else {
+                                    // Update marks if this is being re-processed
+                                    groupedSubjects[baseSubjectName].components[componentName].marks = marks;
+                                }
+                                
+                                // If the component has marks > 0, add it to active components
+                                if (marks > 0) {
+                                    activeComponents.add(componentName);
+                                    groupedSubjects[baseSubjectName].hasData = true;
+                                }
+                                
+                                return; // Skip the standard processing
+                            }
+                            
+                            const parts = subject.name.split('_');
+                            const baseSubjectName = parts[0]; // Hindi, English, Math, etc.
+                            
+                            // Only process if there's a component (parts > 1)
+                            if (parts.length > 1) {
+                                let componentName = subject.name.substring(baseSubjectName.length + 1);
+                                
+                                // Check if component ends with "_Obtained" and remove it
+                                if (componentName.endsWith("_Obtained")) {
+                                    componentName = componentName.replace("_Obtained", "");
+                                }
+                                
+                                let baseComponentName;
+                                // Handle specially formatted fields like Hindi_Periodic_Test_Max_Marks
+                                if (subject.name.includes('_Max_Marks')) {
+                                    const fullName = subject.name;
+                                    const baseSubjectName = parts[0]; // e.g., Hindi
+                                    baseComponentName = fullName.substring(baseSubjectName.length + 1, fullName.length - 10); // "Periodic_Test"
+                                    
+                                    const maxMarks = subject.obtained || 0;
+                                    if (maxMarks > 0) {
+                                        // Store for debugging
+                                        window.allComponentMaxMarks = window.allComponentMaxMarks || {};
+                                        window.allComponentMaxMarks[baseComponentName] = maxMarks;
+                                        
+                                        componentMaxMarks[baseComponentName] = maxMarks;
+                                        console.log(`Found max marks for ${baseComponentName}: ${maxMarks}`);
+                                    }
+                                    
+                                    // Skip further processing
+                                    return;
+                                }
+                                
+                                // Create the subject group if it doesn't exist
+                                if (!groupedSubjects[baseSubjectName]) {
+                                    groupedSubjects[baseSubjectName] = {
+                                        name: baseSubjectName,
+                                        maxMarks: 100,
+                                        components: {},
+                                        obtained: 0,
+                                        grade: '-',
+                                        hasData: false
+                                    };
+                                }
+                                
+                                // Get the marks from the subject data
+                                const marks = subject.obtained || 0;
+                                
+                                // Add the component to the subject
+                                if (!groupedSubjects[baseSubjectName].components[componentName]) {
+                                    groupedSubjects[baseSubjectName].components[componentName] = {
+                                        marks: marks,
+                                        displayName: componentName.replace(/_/g, ' ')
+                                    };
+                                } else {
+                                    // Update marks if this is being re-processed
+                                    groupedSubjects[baseSubjectName].components[componentName].marks = marks;
+                                }
+                                
+                                // If the component has marks > 0, add it to active components
+                                if (marks > 0) {
+                                    activeComponents.add(componentName);
+                                    groupedSubjects[baseSubjectName].hasData = true;
+                                }
+                            }
+                        });
+                        
+                        // Calculate total marks and grades for each subject
+                        for (const baseSubjectName in groupedSubjects) {
+                            const subject = groupedSubjects[baseSubjectName];
+                            let totalMarks = 0;
+                            
+                            // Sum up all component marks
+                            for (const componentName in subject.components) {
+                                totalMarks += subject.components[componentName].marks;
+                            }
+                            
+                            // Update the subject's total marks and grade
+                            subject.obtained = totalMarks;
+                            subject.grade = calculateGrade(totalMarks);
+                            
+                            // Only add subjects with data
+                            if (subject.hasData) {
+                                mainSubjects.push(subject);
+                            }
+                        }
+                        
+                        // Check if any subjects have component data
+                        if (mainSubjects.length > 0 && activeComponents.size > 0) {
+                            useDetailedView = true;
+                        }
+                        
+                        // Check if Sanskrit subject exists and set global flag
+                        window.hasSanskritSubject = mainSubjects.some(subject => 
+                            subject.name && subject.name.toLowerCase().includes('sanskrit')
+                        );
+                        console.log("Sanskrit subject exists:", window.hasSanskritSubject);
+                    }
+                    
+                    // Add processed data to the result
+                    data.hasDetailedView = useDetailedView;
+                    data.groupedSubjects = mainSubjects;
+                    data.activeComponents = Array.from(activeComponents);
+                    data.componentMaxMarks = componentMaxMarks;
+                    
+                    // Hide loading message
+                    hideLoadingMessage();
+                    
+                    return data;
+                }
+                
+                // Hide loading message in case of non-success
+                hideLoadingMessage();
+                return null; // Student not found
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                
+                // Update loading message to error
+                showErrorMessage("Error connecting to the server. Please try again later.");
+                
+                // Hide the skeleton loader
+                document.getElementById('skeletonLoader').style.display = 'none';
+                
+                return null;
+            }
+        }
+
+        function showLoadingMessage(message) {
+            const loadingMessage = document.getElementById('loadingMessage');
+            const loadingText = document.getElementById('loadingText');
+            
+            loadingText.textContent = message;
+            loadingMessage.classList.remove('error', 'success');
+            loadingMessage.style.display = 'block';
+            
+            // Disable search button during loading
+            document.getElementById('searchButton').disabled = true;
+        }
+
+        function showErrorMessage(message) {
+            const loadingMessage = document.getElementById('loadingMessage');
+            const loadingText = document.getElementById('loadingText');
+            
+            loadingText.textContent = message;
+            loadingMessage.classList.add('error');
+            loadingMessage.classList.remove('success');
+            loadingMessage.style.display = 'block';
+            
+            // Re-enable search button
+            document.getElementById('searchButton').disabled = false;
+        }
+
+        function showSuccessMessage(message) {
+            const loadingMessage = document.getElementById('loadingMessage');
+            const loadingText = document.getElementById('loadingText');
+            
+            loadingText.textContent = message;
+            loadingMessage.classList.add('success');
+            loadingMessage.classList.remove('error');
+            loadingMessage.style.display = 'block';
+        }
+
+        function hideLoadingMessage() {
+            document.getElementById('loadingMessage').style.display = 'none';
+            document.getElementById('searchButton').disabled = false;
+        }
+
+        function calculateGrade(marks) {
+            if (marks >= 90) return 'A';
+            else if (marks >= 80) return 'B';
+            else if (marks >= 70) return 'C';
+            else if (marks >= 60) return 'D';
+            else if (marks >= 50) return 'E';
+            else return 'F';
+        }
+
+        function getGradeClass(grade) {
+            // Extract the base grade letter (A, B, C, D, E, F) from the grade
+            // This handles grades with + symbols like A+, B+, etc.
+            const baseGrade = grade.charAt(0);
+            return `grade-${baseGrade}`;
+        }
+
+        function displayResult(data, rollNumber) {
+            // Set student info
+            document.getElementById('studentName').textContent = data.name;
+            document.getElementById('studentRoll').textContent = rollNumber;
+            document.getElementById('studentClass').textContent = data.class;
+            document.getElementById('examYear').textContent = "2024-25";
+            document.getElementById('schoolName').textContent = data.school;
+            document.getElementById('examName').textContent = data.examName; // Use the exam name from the backend
+            
+            // Set new fields
+            document.getElementById('studentDOB').textContent = data.dob;
+            document.getElementById('fatherName').textContent = data.fatherName;
+            document.getElementById('motherName').textContent = data.motherName;
+            
+            // Handle the signature image - improved version with pre-checking
+            const signatureImg = document.getElementById('examInchargeSignature');
+            
+            // Function to check if image exists and display it
+            function checkAndDisplayImage(imgSrc) {
+                return new Promise((resolve) => {
+                    const tempImg = new Image();
+                    tempImg.onload = function() {
+                        signatureImg.src = imgSrc;
+                        signatureImg.style.display = 'block';
+                        resolve(true);
+                    };
+                    tempImg.onerror = function() {
+                        resolve(false);
+                    };
+                    tempImg.src = imgSrc;
+                });
+            }
+            
+            // Try to load the custom signature or default signature
+            async function handleSignature() {
+                // Check if we have a custom signature
+                if (data.examInchargeSignature && 
+                    data.examInchargeSignature.trim() !== '' && 
+                    data.examInchargeSignature !== 'Exam Incharge.png') {
+                    
+                    // Try the custom signature
+                    const customSignatureWorks = await checkAndDisplayImage(data.examInchargeSignature);
+                    if (customSignatureWorks) return;
+                }
+                
+                // Try the default signature
+                const defaultSignatureWorks = await checkAndDisplayImage('Exam Incharge.png');
+                if (!defaultSignatureWorks) {
+                    // If neither signature works, hide the image
+                    signatureImg.style.display = 'none';
+                }
+            }
+            
+            // Call the function to handle signatures
+            handleSignature();
+            
+            // Decide which table to show based on available data
+            const simpleTableContainer = document.getElementById('simpleTableContainer');
+            const detailedTableContainer = document.getElementById('detailedTableContainer');
+            
+            if (data.hasDetailedView) {
+                // Show the detailed table and hide the simple one
+                simpleTableContainer.style.display = 'none';
+                detailedTableContainer.style.display = 'block';
+                
+                // Create dynamic table headers based on active components
+                createDetailedTableHeaders(data.activeComponents, data.componentMaxMarks);
+                
+                // Populate the detailed table
+                populateDetailedTable(data.groupedSubjects, data.activeComponents);
+            } else {
+                // Show the simple table and hide the detailed one
+                simpleTableContainer.style.display = 'block';
+                detailedTableContainer.style.display = 'none';
+                
+                // Populate the simple table
+                populateSimpleTable(data.groupedSubjects);
+            }
+            
+            // Set summary information
+            document.getElementById('totalObtained').textContent = data.totalObtained;
+            document.getElementById('totalMax').textContent = data.totalMarks;
+            document.getElementById('percentage').textContent = data.percentage;
+            document.getElementById('cgpa').textContent = data.cgpa;
+            
+            // Set result
+            const resultStatus = document.getElementById('resultStatus');
+            resultStatus.textContent = data.result;
+            resultStatus.className = data.result === 'PASS' || data.result === 'Pass' ? 'pass' : 'fail';
+        }
+
+        function createDetailedTableHeaders(activeComponents, componentMaxMarks) {
+            const tableHead = document.getElementById('detailedTableHead');
+            tableHead.innerHTML = '';
+            
+            // Create first header row
+            const headerRow1 = document.createElement('tr');
+            
+            // Subject column (rowspan=2)
+            const subjectHeader = document.createElement('th');
+            subjectHeader.textContent = 'Subject';
+            subjectHeader.setAttribute('rowspan', '2');
+            headerRow1.appendChild(subjectHeader);
+            
+            // Max_Marks column (rowspan=2)
+            const maxMarksHeader = document.createElement('th');
+            maxMarksHeader.textContent = 'Max_Marks';
+            maxMarksHeader.setAttribute('rowspan', '2');
+            headerRow1.appendChild(maxMarksHeader);
+            
+            // Components columns (colspan=activeComponents.length)
+            const componentsHeader = document.createElement('th');
+            componentsHeader.textContent = 'Continuous and Comprehensive Evaluation';
+            componentsHeader.setAttribute('colspan', activeComponents.length);
+            headerRow1.appendChild(componentsHeader);
+            
+            // Total column (rowspan=2)
+            const totalHeader = document.createElement('th');
+            totalHeader.textContent = 'Total';
+            totalHeader.setAttribute('rowspan', '2');
+            totalHeader.className = "total-header";
+            totalHeader.innerHTML += '<br>(100)';
+            headerRow1.appendChild(totalHeader);
+            
+            // Grade column (rowspan=2)
+            const gradeHeader = document.createElement('th');
+            gradeHeader.textContent = 'Grade';
+            gradeHeader.setAttribute('rowspan', '2');
+            gradeHeader.className = "grade-header";
+            headerRow1.appendChild(gradeHeader);
+            
+            // Create second header row for component names
+            const headerRow2 = document.createElement('tr');
+            
+            // Add each active component as a column
+            activeComponents.forEach(componentName => {
+                window.addDebug(`Processing component: ${componentName}`);
+                
+                const componentHeader = document.createElement('th');
+                componentHeader.className = "component-header";
+                
+                // Get display name by replacing underscores with spaces
+                const displayName = componentName.replace(/_/g, ' ');
+                
+                // Split long component names onto multiple lines
+                let formattedName = displayName;
+                
+                // If the name has spaces and is longer than 10 characters, split at space
+                if (displayName.includes(' ') && displayName.length > 10) {
+                    // Split at a space character, preferably near the middle
+                    const words = displayName.split(' ');
+                    if (words.length >= 2) {
+                        // If there are at least 2 words, join them with line breaks
+                        formattedName = words.join('<br>');
+                    }
+                }
+                
+                // Extract the component display name without any "Max_Marks" text
+                let cleanDisplayName = formattedName;
+                if (cleanDisplayName.includes("Max Marks")) {
+                    cleanDisplayName = cleanDisplayName.split("Max Marks")[0].trim();
+                }
+                
+                // Preserve exact column display names as specified
+                const displayNames = {
+                    "periodic test": "Periodic Test-I",
+                    "periodic test i": "Periodic Test-I",
+                    "periodic test-i": "Periodic Test-I",
+                    "periodic test ii": "Periodic Test-II",
+                    "periodic test-ii": "Periodic Test-II",
+                    "subject enrichment": "Subject Enrichment",
+                    "subject enrichment activity": "Subject Enrichment Activity",
+                    "notebook submission": "Notebook Submission",
+                    "mid term": "Mid Term",
+                    "see": "SEE",
+                    "oral skill": "Oral Skill",
+                    "learners diary": "Learners Diary",
+                    "mdp": "MDP",
+                    "half yearly exam": "Half Yearly Exam",
+                    "annual exam": "Annual Exam",
+                    "cycle test 1": "Cycle Test 1",
+                    "cycle test 2": "Cycle Test 2",
+                    "cycle test 3": "Cycle Test 3",
+                    "cycle test 4": "Cycle Test 4",
+                    "cycle test 5": "Cycle Test 5",
+                    "cycle test 6": "Cycle Test 6",
+                    "cycle test 7": "Cycle Test 7",
+                    "cycle test 8": "Cycle Test 8"
+                };
+                
+                // Check if we should use a specific display name
+                const lcName = cleanDisplayName.toLowerCase();
+                Object.keys(displayNames).forEach(key => {
+                    if (lcName.includes(key)) {
+                        cleanDisplayName = displayNames[key];
+                    }
+                });
+                
+                // Use a cleaner display format without showing marks in parentheses
+                componentHeader.innerHTML = `
+                    <div style="margin:0; padding:0;">${cleanDisplayName}</div>
+                `;
+                
+                headerRow2.appendChild(componentHeader);
+            });
+            
+            // Add headers to the table
+            tableHead.appendChild(headerRow1);
+            tableHead.appendChild(headerRow2);
+        }
+
+        function populateDetailedTable(subjects, activeComponents) {
+            const tableBody = document.getElementById('detailedTableBody');
+            tableBody.innerHTML = '';
+            
+            // Add subject rows to the detailed table
+            subjects.forEach(subject => {
+                const row = document.createElement('tr');
+                
+                // Add subject name
+                const nameCell = document.createElement('td');
+                nameCell.textContent = subject.name;
+                row.appendChild(nameCell);
+                
+                // Add Max_Marks cell based on subject name
+                const maxMarksCell = document.createElement('td');
+                if (subject.name === 'Hindi') {
+                    maxMarksCell.textContent = '30';
+                } else if (subject.name === 'English') {
+                    maxMarksCell.textContent = '30';
+                } else if (subject.name === 'Math') {
+                    maxMarksCell.textContent = '20';
+                } else if (subject.name === 'EVS') {
+                    maxMarksCell.textContent = '20';
+                } else {
+                    maxMarksCell.textContent = '-';
+                }
+                row.appendChild(maxMarksCell);
+                
+                // Add cells for each active component
+                activeComponents.forEach(componentName => {
+                    const cell = document.createElement('td');
+                    
+                    if (subject.components && subject.components[componentName]) {
+                        cell.textContent = subject.components[componentName].marks;
+                    } else {
+                        cell.textContent = '-';
+                    }
+                    
+                    row.appendChild(cell);
+                });
+                
+                // Add total cell
+                const totalCell = document.createElement('td');
+                totalCell.textContent = subject.obtained || '0';
+                row.appendChild(totalCell);
+                
+                // Add grade cell
+                const gradeCell = document.createElement('td');
+                gradeCell.textContent = subject.grade;
+                gradeCell.className = getGradeClass(subject.grade);
+                row.appendChild(gradeCell);
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        function populateSimpleTable(subjects) {
+            const tableBody = document.getElementById('simpleTableBody');
+            tableBody.innerHTML = '';
+            
+            // Add subject rows to the simple table
+            subjects.forEach(subject => {
+                const row = document.createElement('tr');
+                
+                const nameCell = document.createElement('td');
+                nameCell.textContent = subject.name;
+                
+                const maxMarksCell = document.createElement('td');
+                maxMarksCell.textContent = subject.maxMarks;
+                
+                const obtainedCell = document.createElement('td');
+                obtainedCell.textContent = subject.obtained || '0';
+                
+                const gradeCell = document.createElement('td');
+                gradeCell.textContent = subject.grade;
+                gradeCell.className = getGradeClass(subject.grade);
+                
+                row.appendChild(nameCell);
+                row.appendChild(maxMarksCell);
+                row.appendChild(obtainedCell);
+                row.appendChild(gradeCell);
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        function fetchResult() {
+            const rollNumber = document.getElementById('rollNumber').value;
+            const resultCard = document.getElementById('resultCard');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // Reset display
+            resultCard.style.display = 'none';
+            errorMessage.style.display = 'none';
+            
+            // Reset detailed view flag
+            useDetailedView = false;
+            
+            // Reset Sanskrit subject flag
+            window.hasSanskritSubject = false;
+            
+            // Validate input
+            if (!rollNumber.trim()) {
+                errorMessage.textContent = "Please enter an admission number";
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            // Fetch data from backend
+            fetchDataFromBackend(rollNumber).then(data => {
+                if (data) {
+                    displayResult(data, rollNumber);
+                    resultCard.style.display = 'block';
+                } else {
+                    errorMessage.style.display = 'block';
+                }
+            });
+        }
+        
+        function printResult() {
+            // Make sure the result card is visible
+            const resultCard = document.getElementById('resultCard');
+            if (resultCard.style.display === 'none') {
+                alert('Please search for a student result first');
+                return;
+            }
+            
+            // Check if we need landscape mode (for detailed table)
+            const detailedTable = document.getElementById('detailedTableContainer');
+            if (detailedTable.style.display !== 'none') {
+                document.body.classList.add('print-landscape');
+            } else {
+                document.body.classList.remove('print-landscape');
+            }
+            
+            // Print the page
+            window.print();
+        }
+        
+        // Add event listener for Enter key on roll number input
+        document.getElementById('rollNumber').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                fetchResult();
+            }
+        });
+    </script>
+</body>
+</html>
