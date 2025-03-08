@@ -954,17 +954,8 @@
                             
                             // Handle Cycle Test components
                             if (subject.name.includes('Cycle_Test_') && subject.name.includes('_Obtained')) {
-                                let baseSubjectName;
-                                
-                                // Special handling for Joyful Mathmatics and TWAU
-                                if (subject.name.startsWith('Joyful Mathmatics_')) {
-                                    baseSubjectName = 'Joyful Mathematics'; // Correct the spelling
-                                } else if (subject.name.startsWith('TWAU_')) {
-                                    baseSubjectName = 'TWAU';
-                                } else {
-                                    const parts = subject.name.split('_Obtained')[0].split('_');
-                                    baseSubjectName = parts[0]; // The subject name
-                                }
+                                const parts = subject.name.split('_Obtained')[0].split('_');
+                                const baseSubjectName = parts[0]; // The subject name
                                 
                                 // Create component name based on cycle test number
                                 let componentName = parts.slice(1).join('_'); // e.g., "Cycle_Test_1"
@@ -1065,17 +1056,8 @@
                                 return; // Skip the standard processing
                             }
                             
-                            let baseSubjectName;
-                            
-                            // Special handling for Joyful Mathmatics and TWAU
-                            if (subject.name.startsWith('Joyful Mathmatics_')) {
-                                baseSubjectName = 'Joyful Mathematics'; // Correct the spelling
-                            } else if (subject.name.startsWith('TWAU_')) {
-                                baseSubjectName = 'TWAU';
-                            } else {
-                                const parts = subject.name.split('_');
-                                baseSubjectName = parts[0]; // Hindi, English, etc.
-                            }
+                            const parts = subject.name.split('_');
+                            const baseSubjectName = parts[0]; // Hindi, English, Math, etc.
                             
                             // Only process if there's a component (parts > 1)
                             if (parts.length > 1) {
@@ -1257,6 +1239,228 @@
             return `grade-${baseGrade}`;
         }
 
+        // Modified createDetailedTableHeaders function to only show Cycle Tests
+        function createDetailedTableHeaders(activeComponents, componentMaxMarks) {
+            // Filter to only include Cycle Test components
+            const cycleTestComponents = activeComponents.filter(comp => comp.includes('Cycle_Test_'));
+            
+            const tableHead = document.getElementById('detailedTableHead');
+            tableHead.innerHTML = '';
+            
+            // Create first header row
+            const headerRow1 = document.createElement('tr');
+            
+            // Subject column (rowspan=2)
+            const subjectHeader = document.createElement('th');
+            subjectHeader.textContent = 'Subject';
+            subjectHeader.setAttribute('rowspan', '2');
+            headerRow1.appendChild(subjectHeader);
+            
+            // Add Max_Marks column (rowspan=2)
+            const maxMarksHeader = document.createElement('th');
+            maxMarksHeader.textContent = 'Max Marks';
+            maxMarksHeader.setAttribute('rowspan', '2');
+            headerRow1.appendChild(maxMarksHeader);
+            
+            // Components columns (colspan=cycleTestComponents.length)
+            const componentsHeader = document.createElement('th');
+            componentsHeader.textContent = 'Continuous Comprehensive Evaluation';
+            componentsHeader.setAttribute('colspan', cycleTestComponents.length);
+            headerRow1.appendChild(componentsHeader);
+            
+            // Total column (rowspan=2)
+            const totalHeader = document.createElement('th');
+            totalHeader.textContent = 'Total';
+            totalHeader.setAttribute('rowspan', '2');
+            totalHeader.className = "total-header";
+            headerRow1.appendChild(totalHeader);
+            
+            // Grade column (rowspan=2)
+            const gradeHeader = document.createElement('th');
+            gradeHeader.textContent = 'Grade';
+            gradeHeader.setAttribute('rowspan', '2');
+            gradeHeader.className = "grade-header";
+            headerRow1.appendChild(gradeHeader);
+            
+            // Create second header row for component names
+            const headerRow2 = document.createElement('tr');
+            
+            // Add each cycle test component as a column
+            cycleTestComponents.forEach(componentName => {
+                const componentHeader = document.createElement('th');
+                componentHeader.className = "component-header";
+                
+                // Clean display name (e.g., "Cycle Test 1")
+                const displayName = componentName.replace(/_/g, ' ');
+                
+                // Just show the clean display name without max marks in parentheses
+                componentHeader.textContent = displayName;
+                
+                headerRow2.appendChild(componentHeader);
+            });
+            
+            // Add headers to the table
+            tableHead.appendChild(headerRow1);
+            tableHead.appendChild(headerRow2);
+            
+            // Return the filtered components for use in populateDetailedTable
+            return cycleTestComponents;
+        }
+
+        // Modified populateDetailedTable function to include Max_Marks column, Total row, and Grade row
+        function populateDetailedTable(subjects, activeComponents) {
+            // Filter to only include Cycle Test components
+            const cycleTestComponents = activeComponents.filter(comp => comp.includes('Cycle_Test_'));
+            
+            const tableBody = document.getElementById('detailedTableBody');
+            tableBody.innerHTML = '';
+            
+            // Track totals for each component and overall
+            const componentTotals = {};
+            cycleTestComponents.forEach(comp => {
+                componentTotals[comp] = 0;
+            });
+            let overallTotal = 0;
+            
+            // Subject-specific max marks
+            const subjectMaxMarks = {
+                'Hindi': 30,
+                'English': 30,
+                'Joyful Mathematics': 20,
+                'TWAU': 20
+            };
+            
+            // Add subject rows to the detailed table
+            subjects.forEach(subject => {
+                const row = document.createElement('tr');
+                
+                // Add subject name
+                const nameCell = document.createElement('td');
+                nameCell.textContent = subject.name;
+                row.appendChild(nameCell);
+                
+                // Add Max_Marks column for this subject
+                const maxMarksCell = document.createElement('td');
+                maxMarksCell.textContent = subjectMaxMarks[subject.name] || 20; // Default to 20 if not specified
+                row.appendChild(maxMarksCell);
+                
+                // Track subject total
+                let subjectTotal = 0;
+                
+                // Add cells for each cycle test component
+                cycleTestComponents.forEach(componentName => {
+                    const cell = document.createElement('td');
+                    
+                    let marks = 0;
+                    if (subject.components && subject.components[componentName]) {
+                        marks = subject.components[componentName].marks;
+                        cell.textContent = marks;
+                        
+                        // Add to component total
+                        componentTotals[componentName] += marks;
+                        
+                        // Add to subject total
+                        subjectTotal += marks;
+                    } else {
+                        cell.textContent = '-';
+                    }
+                    
+                    row.appendChild(cell);
+                });
+                
+                // Add total cell for this subject
+                const totalCell = document.createElement('td');
+                totalCell.textContent = subjectTotal;
+                row.appendChild(totalCell);
+                
+                // Add grade cell
+                const gradeCell = document.createElement('td');
+                gradeCell.textContent = calculateGrade(subjectTotal);
+                gradeCell.className = getGradeClass(calculateGrade(subjectTotal));
+                row.appendChild(gradeCell);
+                
+                // Add to overall total
+                overallTotal += subjectTotal;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Add Total row
+            const totalRow = document.createElement('tr');
+            
+            // Total label
+            const totalLabelCell = document.createElement('td');
+            totalLabelCell.textContent = 'Total';
+            totalLabelCell.style.fontWeight = 'bold';
+            totalRow.appendChild(totalLabelCell);
+            
+            // Max marks for total
+            const totalMaxMarksCell = document.createElement('td');
+            totalMaxMarksCell.textContent = '100';
+            totalMaxMarksCell.style.fontWeight = 'bold';
+            totalRow.appendChild(totalMaxMarksCell);
+            
+            // Component totals
+            cycleTestComponents.forEach(componentName => {
+                const totalComponentCell = document.createElement('td');
+                totalComponentCell.textContent = componentTotals[componentName];
+                totalComponentCell.style.fontWeight = 'bold';
+                totalRow.appendChild(totalComponentCell);
+            });
+            
+            // Overall total
+            const overallTotalCell = document.createElement('td');
+            overallTotalCell.textContent = overallTotal;
+            overallTotalCell.style.fontWeight = 'bold';
+            totalRow.appendChild(overallTotalCell);
+            
+            // Grade for overall total
+            const overallGradeCell = document.createElement('td');
+            overallGradeCell.textContent = calculateGrade(overallTotal);
+            overallGradeCell.className = getGradeClass(calculateGrade(overallTotal));
+            overallGradeCell.style.fontWeight = 'bold';
+            totalRow.appendChild(overallGradeCell);
+            
+            tableBody.appendChild(totalRow);
+            
+            // Add Grade row
+            const gradeRow = document.createElement('tr');
+            
+            // Grade label
+            const gradeLabelCell = document.createElement('td');
+            gradeLabelCell.textContent = 'Grade';
+            gradeLabelCell.style.fontWeight = 'bold';
+            gradeRow.appendChild(gradeLabelCell);
+            
+            // Empty cell for max marks
+            const emptyMaxMarksCell = document.createElement('td');
+            emptyMaxMarksCell.textContent = '-';
+            gradeRow.appendChild(emptyMaxMarksCell);
+            
+            // Component grades
+            cycleTestComponents.forEach(componentName => {
+                const gradeComponentCell = document.createElement('td');
+                const componentGrade = calculateGrade(componentTotals[componentName]);
+                gradeComponentCell.textContent = componentGrade;
+                gradeComponentCell.className = getGradeClass(componentGrade);
+                gradeComponentCell.style.fontWeight = 'bold';
+                gradeRow.appendChild(gradeComponentCell);
+            });
+            
+            // Empty cell for total
+            const emptyTotalCell = document.createElement('td');
+            emptyTotalCell.textContent = '-';
+            gradeRow.appendChild(emptyTotalCell);
+            
+            // Empty cell for grade
+            const emptyGradeCell = document.createElement('td');
+            emptyGradeCell.textContent = '-';
+            gradeRow.appendChild(emptyGradeCell);
+            
+            tableBody.appendChild(gradeRow);
+        }
+
+        // Updated displayResult function to always use the detailed view
         function displayResult(data, rollNumber) {
             // Set student info
             document.getElementById('studentName').textContent = data.name;
@@ -1313,28 +1517,19 @@
             // Call the function to handle signatures
             handleSignature();
             
-            // Decide which table to show based on available data
+            // Force using detailed view (for cycle tests)
             const simpleTableContainer = document.getElementById('simpleTableContainer');
             const detailedTableContainer = document.getElementById('detailedTableContainer');
             
-            if (data.hasDetailedView) {
-                // Show the detailed table and hide the simple one
-                simpleTableContainer.style.display = 'none';
-                detailedTableContainer.style.display = 'block';
-                
-                // Create dynamic table headers based on active components
-                createDetailedTableHeaders(data.activeComponents, data.componentMaxMarks);
-                
-                // Populate the detailed table
-                populateDetailedTable(data.groupedSubjects, data.activeComponents);
-            } else {
-                // Show the simple table and hide the detailed one
-                simpleTableContainer.style.display = 'block';
-                detailedTableContainer.style.display = 'none';
-                
-                // Populate the simple table
-                populateSimpleTable(data.groupedSubjects);
-            }
+            // Always use detailed view for cycle tests
+            simpleTableContainer.style.display = 'none';
+            detailedTableContainer.style.display = 'block';
+            
+            // Create dynamic table headers based on active components
+            const cycleTestComponents = createDetailedTableHeaders(data.activeComponents, data.componentMaxMarks);
+            
+            // Populate the detailed table
+            populateDetailedTable(data.groupedSubjects, data.activeComponents);
             
             // Set summary information
             document.getElementById('totalObtained').textContent = data.totalObtained;
@@ -1346,182 +1541,6 @@
             const resultStatus = document.getElementById('resultStatus');
             resultStatus.textContent = data.result;
             resultStatus.className = data.result === 'PASS' || data.result === 'Pass' ? 'pass' : 'fail';
-        }
-
-        function createDetailedTableHeaders(activeComponents, componentMaxMarks) {
-            const tableHead = document.getElementById('detailedTableHead');
-            tableHead.innerHTML = '';
-            
-            // Create first header row
-            const headerRow1 = document.createElement('tr');
-            
-            // Subject column (rowspan=2)
-            const subjectHeader = document.createElement('th');
-            subjectHeader.textContent = 'Subject';
-            subjectHeader.setAttribute('rowspan', '2');
-            headerRow1.appendChild(subjectHeader);
-            
-            // Max_Marks column (rowspan=2)
-            const maxMarksHeader = document.createElement('th');
-            maxMarksHeader.textContent = 'Max_Marks';
-            maxMarksHeader.setAttribute('rowspan', '2');
-            headerRow1.appendChild(maxMarksHeader);
-            
-            // Components columns (colspan=activeComponents.length)
-            const componentsHeader = document.createElement('th');
-            componentsHeader.textContent = 'Continuous and Comprehensive Evaluation';
-            componentsHeader.setAttribute('colspan', activeComponents.length);
-            headerRow1.appendChild(componentsHeader);
-            
-            // Total column (rowspan=2)
-            const totalHeader = document.createElement('th');
-            totalHeader.textContent = 'Total';
-            totalHeader.setAttribute('rowspan', '2');
-            totalHeader.className = "total-header";
-            totalHeader.innerHTML += '<br>(100)';
-            headerRow1.appendChild(totalHeader);
-            
-            // Grade column (rowspan=2)
-            const gradeHeader = document.createElement('th');
-            gradeHeader.textContent = 'Grade';
-            gradeHeader.setAttribute('rowspan', '2');
-            gradeHeader.className = "grade-header";
-            headerRow1.appendChild(gradeHeader);
-            
-            // Create second header row for component names
-            const headerRow2 = document.createElement('tr');
-            
-            // Add each active component as a column
-            activeComponents.forEach(componentName => {
-                window.addDebug(`Processing component: ${componentName}`);
-                
-                const componentHeader = document.createElement('th');
-                componentHeader.className = "component-header";
-                
-                // Get display name by replacing underscores with spaces
-                const displayName = componentName.replace(/_/g, ' ');
-                
-                // Split long component names onto multiple lines
-                let formattedName = displayName;
-                
-                // If the name has spaces and is longer than 10 characters, split at space
-                if (displayName.includes(' ') && displayName.length > 10) {
-                    // Split at a space character, preferably near the middle
-                    const words = displayName.split(' ');
-                    if (words.length >= 2) {
-                        // If there are at least 2 words, join them with line breaks
-                        formattedName = words.join('<br>');
-                    }
-                }
-                
-                // Extract the component display name without any "Max_Marks" text
-                let cleanDisplayName = formattedName;
-                if (cleanDisplayName.includes("Max Marks")) {
-                    cleanDisplayName = cleanDisplayName.split("Max Marks")[0].trim();
-                }
-                
-                // Preserve exact column display names as specified
-                const displayNames = {
-                    "periodic test": "Periodic Test-I",
-                    "periodic test i": "Periodic Test-I",
-                    "periodic test-i": "Periodic Test-I",
-                    "periodic test ii": "Periodic Test-II",
-                    "periodic test-ii": "Periodic Test-II",
-                    "subject enrichment": "Subject Enrichment",
-                    "subject enrichment activity": "Subject Enrichment Activity",
-                    "notebook submission": "Notebook Submission",
-                    "mid term": "Mid Term",
-                    "see": "SEE",
-                    "oral skill": "Oral Skill",
-                    "learners diary": "Learners Diary",
-                    "mdp": "MDP",
-                    "half yearly exam": "Half Yearly Exam",
-                    "annual exam": "Annual Exam",
-                    "cycle test 1": "Cycle Test 1",
-                    "cycle test 2": "Cycle Test 2",
-                    "cycle test 3": "Cycle Test 3",
-                    "cycle test 4": "Cycle Test 4",
-                    "cycle test 5": "Cycle Test 5",
-                    "cycle test 6": "Cycle Test 6",
-                    "cycle test 7": "Cycle Test 7",
-                    "cycle test 8": "Cycle Test 8"
-                };
-                
-                // Check if we should use a specific display name
-                const lcName = cleanDisplayName.toLowerCase();
-                Object.keys(displayNames).forEach(key => {
-                    if (lcName.includes(key)) {
-                        cleanDisplayName = displayNames[key];
-                    }
-                });
-                
-                // Use a cleaner display format without showing marks in parentheses
-                componentHeader.innerHTML = `
-                    <div style="margin:0; padding:0;">${cleanDisplayName}</div>
-                `;
-                
-                headerRow2.appendChild(componentHeader);
-            });
-            
-            // Add headers to the table
-            tableHead.appendChild(headerRow1);
-            tableHead.appendChild(headerRow2);
-        }
-
-        function populateDetailedTable(subjects, activeComponents) {
-            const tableBody = document.getElementById('detailedTableBody');
-            tableBody.innerHTML = '';
-            
-            // Add subject rows to the detailed table
-            subjects.forEach(subject => {
-                const row = document.createElement('tr');
-                
-                // Add subject name
-                const nameCell = document.createElement('td');
-                nameCell.textContent = subject.name;
-                row.appendChild(nameCell);
-                
-                // Add Max_Marks cell based on subject name
-                const maxMarksCell = document.createElement('td');
-                if (subject.name === 'Hindi') {
-                    maxMarksCell.textContent = '30';
-                } else if (subject.name === 'English') {
-                    maxMarksCell.textContent = '30';
-                } else if (subject.name === 'Joyful Mathematics') {
-                    maxMarksCell.textContent = '20';
-                } else if (subject.name === 'TWAU') {
-                    maxMarksCell.textContent = '20';
-                } else {
-                    maxMarksCell.textContent = '-';
-                }
-                row.appendChild(maxMarksCell);
-                
-                // Add cells for each active component
-                activeComponents.forEach(componentName => {
-                    const cell = document.createElement('td');
-                    
-                    if (subject.components && subject.components[componentName]) {
-                        cell.textContent = subject.components[componentName].marks;
-                    } else {
-                        cell.textContent = '-';
-                    }
-                    
-                    row.appendChild(cell);
-                });
-                
-                // Add total cell
-                const totalCell = document.createElement('td');
-                totalCell.textContent = subject.obtained || '0';
-                row.appendChild(totalCell);
-                
-                // Add grade cell
-                const gradeCell = document.createElement('td');
-                gradeCell.textContent = subject.grade;
-                gradeCell.className = getGradeClass(subject.grade);
-                row.appendChild(gradeCell);
-                
-                tableBody.appendChild(row);
-            });
         }
 
         function populateSimpleTable(subjects) {
