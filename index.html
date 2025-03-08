@@ -591,10 +591,10 @@
                 display: none !important;
             }
             
-            .grade-A, .grade-A\+ { color: #4CAF50 !important; }
-            .grade-B, .grade-B\+ { color: #2196F3 !important; }
-            .grade-C, .grade-C\+ { color: #FF9800 !important; }
-            .grade-D, .grade-D\+ { color: #FF9800 !important; }
+            .grade-A, .grade-A\+, .grade-A1\, .grade-A2 { color: #4CAF50 !important; }
+            .grade-B, .grade-B\+, .grade-B1\, .grade-B2 { color: #2196F3 !important; }
+            .grade-C, .grade-C\+, .grade-C1\, .grade-C2 { color: #FF9800 !important; }
+            .grade-D, .grade-D\+, .grade-D1\, .grade-D2 { color: #FF9800 !important; }
             .grade-E { color: #FF7043 !important; }
             .grade-F { color: #F44336 !important; }
             
@@ -1224,11 +1224,14 @@
         }
 
         function calculateGrade(marks) {
-            if (marks >= 90) return 'A';
-            else if (marks >= 80) return 'B';
-            else if (marks >= 70) return 'C';
-            else if (marks >= 60) return 'D';
-            else if (marks >= 50) return 'E';
+            if (marks > 90) return 'A1';
+            else if (marks > 80) return 'A2';
+            else if (marks > 70) return 'B1';
+            else if (marks > 60) return 'B2';
+            else if (marks > 50) return 'C1';
+            else if (marks > 40) return 'C2';
+            else if (marks > 32) return 'D';
+            else if (marks > 0) return 'E';
             else return 'F';
         }
 
