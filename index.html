@@ -1268,20 +1268,6 @@
             componentsHeader.setAttribute('colspan', cycleTestComponents.length);
             headerRow1.appendChild(componentsHeader);
             
-            // Total column (rowspan=2)
-            const totalHeader = document.createElement('th');
-            totalHeader.textContent = 'Total';
-            totalHeader.setAttribute('rowspan', '2');
-            totalHeader.className = "total-header";
-            headerRow1.appendChild(totalHeader);
-            
-            // Grade column (rowspan=2)
-            const gradeHeader = document.createElement('th');
-            gradeHeader.textContent = 'Grade';
-            gradeHeader.setAttribute('rowspan', '2');
-            gradeHeader.className = "grade-header";
-            headerRow1.appendChild(gradeHeader);
-            
             // Create second header row for component names
             const headerRow2 = document.createElement('tr');
             
@@ -1368,17 +1354,6 @@
                     row.appendChild(cell);
                 });
                 
-                // Add total cell for this subject
-                const totalCell = document.createElement('td');
-                totalCell.textContent = subjectTotal;
-                row.appendChild(totalCell);
-                
-                // Add grade cell
-                const gradeCell = document.createElement('td');
-                gradeCell.textContent = calculateGrade(subjectTotal);
-                gradeCell.className = getGradeClass(calculateGrade(subjectTotal));
-                row.appendChild(gradeCell);
-                
                 // Add to overall total
                 overallTotal += subjectTotal;
                 
@@ -1408,19 +1383,6 @@
                 totalRow.appendChild(totalComponentCell);
             });
             
-            // Overall total
-            const overallTotalCell = document.createElement('td');
-            overallTotalCell.textContent = overallTotal;
-            overallTotalCell.style.fontWeight = 'bold';
-            totalRow.appendChild(overallTotalCell);
-            
-            // Grade for overall total
-            const overallGradeCell = document.createElement('td');
-            overallGradeCell.textContent = calculateGrade(overallTotal);
-            overallGradeCell.className = getGradeClass(calculateGrade(overallTotal));
-            overallGradeCell.style.fontWeight = 'bold';
-            totalRow.appendChild(overallGradeCell);
-            
             tableBody.appendChild(totalRow);
             
             // Add Grade row
@@ -1446,16 +1408,6 @@
                 gradeComponentCell.style.fontWeight = 'bold';
                 gradeRow.appendChild(gradeComponentCell);
             });
-            
-            // Empty cell for total
-            const emptyTotalCell = document.createElement('td');
-            emptyTotalCell.textContent = '-';
-            gradeRow.appendChild(emptyTotalCell);
-            
-            // Empty cell for grade
-            const emptyGradeCell = document.createElement('td');
-            emptyGradeCell.textContent = '-';
-            gradeRow.appendChild(emptyGradeCell);
             
             tableBody.appendChild(gradeRow);
         }
