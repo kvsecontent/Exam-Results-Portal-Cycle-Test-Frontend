@@ -954,8 +954,17 @@
                             
                             // Handle Cycle Test components
                             if (subject.name.includes('Cycle_Test_') && subject.name.includes('_Obtained')) {
-                                const parts = subject.name.split('_Obtained')[0].split('_');
-                                const baseSubjectName = parts[0]; // The subject name
+                                let baseSubjectName;
+                                
+                                // Special handling for Joyful Mathmatics and TWAU
+                                if (subject.name.startsWith('Joyful Mathmatics_')) {
+                                    baseSubjectName = 'Joyful Mathematics'; // Correct the spelling
+                                } else if (subject.name.startsWith('TWAU_')) {
+                                    baseSubjectName = 'TWAU';
+                                } else {
+                                    const parts = subject.name.split('_Obtained')[0].split('_');
+                                    baseSubjectName = parts[0]; // The subject name
+                                }
                                 
                                 // Create component name based on cycle test number
                                 let componentName = parts.slice(1).join('_'); // e.g., "Cycle_Test_1"
@@ -1056,8 +1065,17 @@
                                 return; // Skip the standard processing
                             }
                             
-                            const parts = subject.name.split('_');
-                            const baseSubjectName = parts[0]; // Hindi, English, Math, etc.
+                            let baseSubjectName;
+                            
+                            // Special handling for Joyful Mathmatics and TWAU
+                            if (subject.name.startsWith('Joyful Mathmatics_')) {
+                                baseSubjectName = 'Joyful Mathematics'; // Correct the spelling
+                            } else if (subject.name.startsWith('TWAU_')) {
+                                baseSubjectName = 'TWAU';
+                            } else {
+                                const parts = subject.name.split('_');
+                                baseSubjectName = parts[0]; // Hindi, English, etc.
+                            }
                             
                             // Only process if there's a component (parts > 1)
                             if (parts.length > 1) {
